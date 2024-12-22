@@ -6,21 +6,25 @@ import { useNavigate, useParams } from 'react-router-dom';
 import SaveIcon from '@mui/icons-material/Save';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import PersonIcon from '@mui/icons-material/Person'; // Importar el icono de persona
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
+import dayjs from 'dayjs'; // Importar dayjs
 
 const MantenimientoClientesForm = () => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [formData, setFormData] = useState({
-    id: '',
+    identificacion: '', // Cambiado de id a identificacion
     nombre: '',
     apellidos: '',
     sexo: '',
-    fechaNacimiento: '',
-    fechaAfiliacion: '',
-    telefono: '',
-    telefonoOtro: '',
-    interesesFK: '',
+    fNacimiento: null, // Cambiado a null
+    fAfiliacion: null, // Cambiado a null
+    celular: '', // Cambiado de telefono a celular
+    otroTelefono: '', // Cambiado de telefonoOtro a otroTelefono
+    interesFK: '', // Cambiado de interesesFK a interesFK
     direccion: '',
-    resena: '',
+    resennaPersonal: '', // Cambiado de resena a resennaPersonal
     imagen: '',
   });
   const [intereses, setIntereses] = useState([]);
@@ -80,7 +84,7 @@ const MantenimientoClientesForm = () => {
     console.log(`Fecha seleccionada para ${name}:`, value);
     setFormData((prevState) => ({
       ...prevState,
-      [name]: value,
+      [name]: value ? value.toISOString() : null, // Convertir a ISO o null
     }));
   };
 
@@ -88,7 +92,7 @@ const MantenimientoClientesForm = () => {
     const { value } = e.target;
     setFormData((prevState) => ({
       ...prevState,
-      interesesFK: value, // Cambiado para manejar un solo interés
+      interesFK: value, // Cambiado para manejar un solo interés
     }));
     console.log('Interés seleccionado:', value);
   };
@@ -112,9 +116,9 @@ const MantenimientoClientesForm = () => {
       if (!token) throw new Error('No está autenticado');
 
       // Validación de campos obligatorios
-      if (!formData.id || !formData.nombre || !formData.apellidos || !formData.sexo  || !formData.telefono || !formData.interesesFK || !formData.direccion || !formData.resena) {
-        console.log(formData)
-        setSnackbarMessage('Asegurese de llenar los campos requeridos');
+      if (!formData.identificacion || !formData.nombre || !formData.apellidos || !formData.sexo || !formData.celular || !formData.interesFK || !formData.direccion || !formData.resennaPersonal) {
+        console.log(formData);
+        setSnackbarMessage('Asegúrese de llenar los campos requeridos');
         setSnackbarSeverity('error');
         setSnackbarOpen(true);
         return;
@@ -126,7 +130,7 @@ const MantenimientoClientesForm = () => {
       };
 
       if (isEditMode) {
-        await ClientService.updateClient(formData.id, requestData, token);
+        await ClientService.updateClient(formData.identificacion, requestData, token); // Cambiado de id a identificacion
         setSnackbarMessage('Cliente actualizado exitosamente');
       } else {
         await ClientService.createClient(requestData, token);
@@ -192,8 +196,8 @@ const MantenimientoClientesForm = () => {
           <TextField
             fullWidth
             label="Identificación *"
-            name="id"
-            value={formData.id}
+            name="identificacion" // Cambiado de id a identificacion
+            value={formData.identificacion} // Cambiado de id a identificacion
             onChange={handleChange}
           />
         </Grid>
@@ -229,36 +233,40 @@ const MantenimientoClientesForm = () => {
           </FormControl>
         </Grid>
         <Grid item xs={12} sm={4}>
-          <BasicDateTimePicker
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
+          <DateTimePicker
             label="Fecha de Nacimiento *"
             placeholder="Seleccione la fecha de nacimiento"
-            value={formData.fechaNacimiento}
-            onChange={(value) => handleDateChange('fechaNacimiento', value)}
-          />
+            value={formData.fNacimiento ? dayjs(formData.fNacimiento) : null} // Cambiado a fNacimiento
+            onChange={(value) => handleDateChange('fNacimiento', value)} // Cambiado a fNacimiento
+        />
+        </LocalizationProvider>
         </Grid>
         <Grid item xs={12} sm={4}>
-          <BasicDateTimePicker
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
+          <DateTimePicker
             label="Fecha de Afiliación *"
             placeholder="Seleccione la fecha de afiliación"
-            value={formData.fechaAfiliacion}
-            onChange={(value) => handleDateChange('fechaAfiliacion', value)}
+            value={formData.fAfiliacion ? dayjs(formData.fAfiliacion) : null} // Cambiado a fAfiliacion
+            onChange={(value) => handleDateChange('fAfiliacion', value)} // Cambiado a fAfiliacion
           />
+        </LocalizationProvider>
         </Grid>
         <Grid item xs={12} sm={4}>
           <TextField
             fullWidth
-            label="Teléfono *"
-            name="telefono"
-            value={formData.telefono}
+            label="Celular *" // Cambiado de Teléfono a Celular
+            name="celular" // Cambiado de telefono a celular
+            value={formData.celular} // Cambiado de telefono a celular
             onChange={handleChange}
           />
         </Grid>
         <Grid item xs={12} sm={4}>
           <TextField
             fullWidth
-            label="Teléfono Otro"
-            name="telefonoOtro"
-            value={formData.telefonoOtro}
+            label="Otro Teléfono" // Cambiado de Teléfono Otro a Otro Teléfono
+            name="otroTelefono" // Cambiado de telefonoOtro a otroTelefono
+            value={formData.otroTelefono} // Cambiado de telefonoOtro a otroTelefono
             onChange={handleChange}
           />
         </Grid>
@@ -266,8 +274,8 @@ const MantenimientoClientesForm = () => {
           <FormControl fullWidth>
             <InputLabel>Intereses *</InputLabel>
             <Select
-              name="interesesFK"
-              value={formData.interesesFK}
+              name="interesFK" // Cambiado de interesesFK a interesFK
+              value={formData.interesFK} // Cambiado de interesesFK a interesFK
               onChange={handleInterestsChange}
             >
               {intereses.map((interes) => (
@@ -281,9 +289,9 @@ const MantenimientoClientesForm = () => {
         <Grid item xs={12}>
           <TextField
             fullWidth
-            label="Reseña *"
-            name="resena"
-            value={formData.resena}
+            label="Reseña Personal *" // Cambiado de Reseña a Reseña Personal
+            name="resennaPersonal" // Cambiado de resena a resennaPersonal
+            value={formData.resennaPersonal} // Cambiado de resena a resennaPersonal
             onChange={handleChange}
             multiline
             rows={4}
